@@ -6,12 +6,12 @@
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
 	<script>
 			var socket = io();
-			socket.on('receive message', function(name, text) {
+			socket.on('receive message', function(name, text, timeStamp) {
 				var P_Tag = document.createElement('p');
-				var msg = name + ' : ' + text;
+				var msg = name + ' : ' + text + "  " + timeStamp;
 				if(name == $('#name').val()) {
 					P_Tag.className = 'myMessage';
-					msg = text;
+					msg = timeStamp + "  " + text;
 				}
 
 				P_Tag.appendChild(document.createTextNode(msg))

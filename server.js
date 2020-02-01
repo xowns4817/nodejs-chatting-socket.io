@@ -2,10 +2,12 @@ var express = require('express');
 var app = express( );
 var http = require('http')
 var pool = require('./dbconfig');
+//var date_module = require("./date_module");
 
 var server = http.createServer(app);
 server.listen(3000, function( ){
-    console.log("Connect Server !");
+	console.log("Connect Server !");
+	//console.log(date_module);
 })
 //app.use(express.static('/public'));
 
@@ -27,7 +29,7 @@ io.on('connection', socket => {
 	conn.query('SELECT * FROM CHAT', (err, rows, filds)=> {
 		console.log(rows);
 		if(!err) for(let i=0; i<rows.length; i++) {
-			io.to(socket.id).emit('receive message', rows[i].user, rows[i].content);
+			io.to(socket.id).emit('receive message', rows[i].user, rows[i].content, rows[i].timestamp);
 		}
 		else console.log(err);
 	});
@@ -48,7 +50,7 @@ io.on('connection', socket => {
 		// 사용자에게 변경된 닉네임을 보내줌
 		io.to(socket.id).emit('change name', text);
 		// (전체)사용자에게 메세지 전달
-		io.emit('receive message', name +'님이', text+'(으)로 닉네임을 변경했습니다.');
+		io.emit('receive message', name +'님이', text+'(으)로 닉네임을 변경했습니다.', getTimeStamp());
 	});
 	
 	// 사용자가 메세지 보낸다는 신호를 보내면
@@ -56,10 +58,11 @@ io.on('connection', socket => {
 		//massage = name + ' : ' + text;
 		console.log(socket.id + '(' + name + ') : ' + text);
 		// (전체)사용자에게 메세지 전달
-		io.emit('receive message', name, text);
+		var timestamp = getTimeStamp( );
+		io.emit('receive message', name, text, timestamp);
 		pool.getConnection(function(err, conn){
 			if(err) throw err;
-			conn.query('INSERT INTO CHAT(USER, CONTENT) VALUES(?, ?)', [name, text], function(err, results, fields) {
+			conn.query('INSERT INTO CHAT(USER, CONTENT, TIMESTAMP) VALUES(?, ?, ?)', [name, text, timestamp], function(err, results, fields) {
 				if(err) throw(err);
 				console.log("채팅 db에 삽입 완료 !");
 				conn.release();
@@ -67,3 +70,28 @@ io.on('connection', socket => {
 		})
 	});
 });
+
+function getTimeStamp() {
+    var d = new Date();
+    var s =
+      leadingZeros(d.getFullYear(), 4) + '-' +
+      leadingZeros(d.getMonth() + 1, 2) + '-' +
+      leadingZeros(d.getDate(), 2) + ' ' +
+  
+      leadingZeros(d.getHours(), 2) + ':' +
+      leadingZeros(d.getMinutes(), 2) + ':' +
+      leadingZeros(d.getSeconds(), 2);
+  
+    return s;
+  }
+  
+  function leadingZeros(n, digits) {
+    var zero = '';
+    n = n.toString();
+  
+    if (n.length < digits) {
+      for (i = 0; i < digits - n.length; i++)
+        zero += '0';
+    }
+    return zero + n;
+  }
