@@ -117,13 +117,12 @@ io.on('connection', socket => {
 		io.to(roomId).emit('receive message', name +'님이', text+'(으)로 닉네임을 변경했습니다.', getTimeStamp());
 	});
 	
-/*
-	//퇴장 이벤트
+	//퇴장 이벤트 -> leave 메시지를 보내면 해당 방에서 나가는 거고 socket 자체가 끊어지는것은 아님. 이부분 처리 필요.
 	 socket.on('leaveRoom', function(data){
-		socket.leave(data.room);
-		console.log('room에서 퇴장');
-	 })
-*/
+		var leave_roomId = data.roomId;
+		socket.leave(leave_roomId);
+		console.log(leave_roomId + '에서 퇴장');
+	 });
 });
 
 function getTimeStamp() {
