@@ -5,12 +5,12 @@
 	<script src="/socket.io/socket.io.js"></script>
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
 	<script>
-			var socket = io('http://localhost:3000');
-
+            var socket = io('http://localhost:3000');
+            var roomId = "<%=roomId%>";
 			//서버와 연결되면 호출된다.
 			socket.on('connect', function(arg) {
 				console.log('server connect !');
-				socket.emit('joinRoom');
+				socket.emit('joinRoom', {'roomId': roomId});
 
 				socket.on('msgAlert', function(data) {
 					alert(data);
@@ -21,8 +21,7 @@
 					socket.emit('leaveRoom', {room: 'room1'});
 				})
 			*/
-			});
-			
+
 			socket.on('receive message', function(name, text, timeStamp) {
 				var P_Tag = document.createElement('p');
 				var msg = name + ' : ' + text + "  " + timeStamp;
@@ -38,7 +37,7 @@
 			socket.on('change name', function(name) {
 				$('#name').val(name);
 			});
-
+ 
 			//입장 알림 메시지
 			socket.on('in message', function(msg) {
 				var P_Tag = document.createElement('p');
@@ -53,16 +52,17 @@
 				P_Tag.appendChild(document.createTextNode(msg))
 				document.getElementById('chatLog').appendChild(P_Tag);
 				document.getElementById('chatLog').scrollTop = document.getElementById('chatLog').scrollHeight;
-			});
-			
+			});  
+        });
+        
 			function chat_submit() {
-				socket.emit('send message', $('#name').val(), $('#message').val());
+				socket.emit('send message', $('#name').val(), $('#message').val(), roomId);
 				$('#message').val("");
 				$("#message").focus();
 				//e.preventDefault();
 			}
 			function rename_submit() {
-				socket.emit('rename', $('#name').val(), $('#message').val());
+				socket.emit('rename', $('#name').val(), $('#message').val(), roomId);
 				$('#message').val("");
 				$("#message").focus();
 				//e.preventDefault();
@@ -149,6 +149,7 @@ body {
 </style>
 </head>
 <body>
+        <h1><%=roomId%></h1>
 		<div id="chatLog" class="chatLog">
 				<p>김태준 : 매너 있는 채팅 부탁드립니다 :)</p>
 				<!--<p class="myMessage">나 : 싫어</p>-->
