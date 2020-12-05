@@ -29,8 +29,8 @@ app.get('/', function(req, res) {
 	roomId = req.query.roomId;
 	res.render('client', {"roomId" : roomId});
 })
-// 사용자가 연결되면
 
+// 사용자가 연결되면
 let userList = [];
 var io = require('socket.io')(server);
 io.on('connection', socket => {
@@ -53,19 +53,18 @@ io.on('connection', socket => {
 	// 채팅방 history 조회
 	pool.getConnection(function(err, conn) {
 		if(err) throw(err);
-		 conn.query('SELECT * FROM CHAT Where ROOMID = ?', [roomId], (err, rows, filds)=> {
+		 conn.query('SELECT * FROM chatMsg Where ROOMID = ?', [roomId], (err, rows, filds)=> {
 		   console.log(rows);
 		   if(!err) for(let i=0; i<rows.length; i++) {
-			   io.to(socket.id).emit('receive message', rows[i].user, rows[i].content, rows[i].timestamp);
-			  }
-			 else console.log(err);
-		  });
-		 });
+			   io.to(socket.id).emit('receive message', rows[i].userId, rows[i].content, rows[i].timestamp);
+			} else console.log(err);
+		});
+	});
 
 	// 사용자에게 변경된 닉네임을 보내줌
 	io.to(socket.id).emit('change name', name);
 	//사용자 입장 알림
-	io.to(roomId).emit('in message', name + '님이 입장하셨습니다.');
+	io.to(roomId).emit('in message', name + '님이 입장하셨습니다.');	
 	// 사용자의 연결이 끊어지면
 	socket.on('disconnect', () => {
 		console.log('User Disconnected: ', socket.id);
@@ -73,7 +72,7 @@ io.on('connection', socket => {
 		var out_roomId;
 		var out_name;
 			 // 퇴장한 유저 유저 리스트에서 삭제
-			 for(var i=0; i<userList.length; i++) {
+			for(var i=0; i<userList.length; i++) {
 				if(userList[i].socketId === socket.id) {
 					out_roomId = userList[i].roomId;
 					out_name = userList[i].nickName;
@@ -100,7 +99,7 @@ io.on('connection', socket => {
 			//db write
 			pool.getConnection(function(err, conn){
 				if(err) throw err;
-				conn.query('INSERT INTO CHAT(ROOMID, USER, CONTENT, TIMESTAMP) VALUES(?, ?, ?, ?)', [roomId, name, text, timestamp], function(err, results, fields) {
+				conn.query('INSERT INTO chatMsg(ROOMID, USERID, CONTENT, TIMESTAMP) VALUES(?, ?, ?, ?)', [roomId, name, text, timestamp], function(err, results, fields) {
 					if(err) throw(err);
 					console.log("채팅 db에 삽입 완료 !");
 					conn.release();
@@ -109,12 +108,22 @@ io.on('connection', socket => {
 		});
 
 		// 사용자가 이름 변경 신호를 보내면
-	socket.on('rename', (name,text, roomId) => {
-		console.log(socket.id + '(' + name + ') => ' + text + ', roomId : ' + roomId);
+	socket.on('rename', (name, roomId) => {
+		//console.log(socket.id + '(' + name + ') => ' + text + ', roomId : ' + roomId);
 		// 사용자에게 변경된 닉네임을 보내줌
-		io.to(socket.id).emit('change name', text);
+
+		let oldNickName=null;
+		for(var i=0; i<userList.length; i++) {
+			if(userList[i].socketId === socket.id) {
+				oldNickName = userList[i].nickName;
+				userList[i].nickName=name;
+				break;
+			}
+		}
+		
+		io.to(socket.id).emit('change name', name);
 		// (전체)사용자에게 메세지 전달
-		io.to(roomId).emit('receive message', name +'님이', text+'(으)로 닉네임을 변경했습니다.', getTimeStamp());
+		io.to(roomId).emit('receive message', oldNickName +'님이', name+'(으)로 닉네임을 변경했습니다.', getTimeStamp());
 	});
 	
 	//퇴장 이벤트 -> leave 메시지를 보내면 해당 방에서 나가는 거고 socket 자체가 끊어지는것은 아님. 이부분 처리 필요.

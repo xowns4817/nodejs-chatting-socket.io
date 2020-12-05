@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
 	<script src="/socket.io/socket.io.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+	<script src="//code.jquery.com/jquery-1.11.1.js"></script>
+	<script>
+		  function guid() {
+    function s4() {
+      return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+  }
+	</script>
 	<script>
             var socket = io('http://localhost:3000');
             var roomId = "<%=roomId%>";
@@ -18,7 +26,7 @@
 
 			socket.on('receive message', function(name, text, timeStamp) {
 				var P_Tag = document.createElement('p');
-				var msg = name + ' : ' + text + "  " + timeStamp;
+				var msg = name + " " + text + "  " + timeStamp;
 				if(name == $('#name').val()) {
 					P_Tag.className = 'myMessage';
 					msg = timeStamp + "  " + text;
@@ -56,9 +64,9 @@
 				//e.preventDefault();
 			}
 			function rename_submit() {
-				socket.emit('rename', $('#name').val(), $('#message').val(), roomId);
-				$('#message').val("");
-				$("#message").focus();
+				socket.emit('rename', $('#name').val(), roomId);
+				//$('#message').val("");
+				//$("#message").focus();
 				//e.preventDefault();
 			}
 			function Enter_Check(){
@@ -156,7 +164,7 @@ body {
 				<!--<p class="myMessage">나 : 싫어</p>-->
 			</div>
 			<div class="chatBox">
-					<input id="name" class="name" type="text" readonly>
+					<input id="name" class="name" type="text">
 					<button onclick="rename_submit();">닉네임 변경</button>
 					<input id="message" onkeydown="JavaScript:Enter_Check();" class="message" type="text" autocomplete="off">
 					<button onclick="chat_submit();">전송</button>
