@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>chating main page</title>
+        <style>
+            .title {
+                text-align: center;
+            }
+
+            .container {
+                display: flex;
+                width: 100vw;
+                height: 100vh;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .item {
+                background-color: yellowgreen;
+                border: 1px solid black;
+                width: 200px;
+                height: 100px;
+                text-align: center;
+            }
+
+            .item:hover {
+                background-color: darkgray;
+                opacity: 0.5;
+            }
+
+            .modal {
+                position:fixed;
+                _position:absolute;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                display:none;
+            }
+            .modal .bg {
+                position:absolute;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:#000;
+                opacity:.5;
+                filter:alpha(opacity=50)
+                }
+            .modal .fg {
+                position:absolute;
+                top:50%;
+                left:50%;
+                width:360px;
+                height:160px;
+                margin:-100px 0 0 -200px;
+                padding:20px;
+                border:3px solid #ccc;
+                background:#fff;
+                }
+        </style>
+    </head>
+
+    <body>
+        <div class="title">chatting main page</div>
+        <div style="float: right;">
+            <button onclick="createNewRoom();">create new Room</button>
+        </div>
+        <div class="container">
+            <div class="item" onclick="joinRoom(1)"> 
+                    <div id="room-title-1">Room 1</div>
+                    <div>joinMembers : 1</div>
+                    <div>A</div>
+                    <div>2020:12:05 11:58:00</div>
+            </div>
+            <div class="item" onclick="joinRoom(2)"> 
+                    <div id="room-title-2">Room 2</div>
+                    <div>joinMembers : 2</div>
+                    <div>B, C</div>
+                    <div>2020:12:05 11:58:00</div>
+            </div>
+            <div class="item" onclick="joinRoom(3)"> 
+                    <div id="room-title-3">Room 3</div>
+                    <div>joinMembers: 4</div>
+                    <div>E, F, G, H</div>
+                    <div>2020:12:05 11:58:00</div>
+            </div>
+        </div>
+ 
+ <!-- room title setting -->
+<div id="roomTitleModal" class="modal">
+    <div class="bg"><!--이란에는 내용을 넣지 마십시오.--></div>
+    <div class="fg">
+        <p>room title </p> <input type="text" id="roomTitle"><br><br>
+        <div style="display: inline-block;">
+            <button onclick="roomModalClose();" type="button">ok</button>
+            <button onclick="roomModalClose();" type="button">close</button>
+        </div>
+    </div>
+</div>
+
+<!-- nickname setting -->
+<div id="nicknameModal" class="modal">
+    <div class="bg"><!--이란에는 내용을 넣지 마십시오.--></div>
+    <div class="fg">
+        <p>nickname </p> <input type="text" id="nickname"><br><br>
+        <div style="display: inline-block;">
+            <button onclick="joinCall();" type="button">ok</button>
+            <button onclick="nicknameModalClose();" type="button">close</button>
+        </div>
+    </div>
+</div>
+
+    </body>
+    <script>
+      
+      function joinRoom(roomNum) {
+        alert(roomNum);
+        document.getElementById('nicknameModal').style.display='block'
+      };
+
+      // after setting nickname
+      function joinCall( ) {
+       
+      };
+
+      function createNewRoom( ) {
+        document.getElementById('roomTitleModal').style.display='block'
+      };
+
+      function roomModalClose( ) {
+        document.getElementById('roomTitleModal').style.display='none'
+      };
+
+      function nicknameModalClose( ) {
+        document.getElementById('nicknameModal').style.display='none'
+      };
+
+    </script>
+</html>

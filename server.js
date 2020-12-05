@@ -4,12 +4,13 @@
  입력완료 버튼 누르면 해당 값을 넘겨서 ( ejs 사용) 이 값으로 세팅되게 만들어보기 !
  */
 
-var express = require('express');
-var app = express( );
-var http = require('http')
-var pool = require('./dbconfig');
-var ejs = require('ejs');
-var bodyParser = require('body-parser');
+const express = require('express');
+const app = express( );
+const http = require('http')
+const pool = require('./dbconfig');
+//const redisClient = require('./redisconfig');
+const ejs = require('ejs');
+const bodyParser = require('body-parser');
 
 app.set('views', __dirname + '/views');
 app.set('view engine',  'ejs');
@@ -25,7 +26,13 @@ server.listen(3000, function( ){
 
 var tempNick = ["감자탕","맛탕","새우탕","그라탕","갈비탕","백설탕"];
 
+// main page
 app.get('/', function(req, res) {
+	res.render('chat_main', {"name": "kimCoding"});
+});
+
+// chatting page
+app.get('/chat', function(req, res) {
 	roomId = req.query.roomId;
 	res.render('client', {"roomId" : roomId});
 })
@@ -44,6 +51,7 @@ io.on('connection', socket => {
 		io.to(roomId).emit('msgAlert', name + '님이 ' + roomId + '방에 참여하셨습니다.');
 	// 사용될 닉네임을 결정
 	
+	//redisredisClient.set("")
     userList.push({ // 채팅방 참여 유저 유저리스트에 추가
 		   'socketId': socket.id,
 		   'nickName': name,
