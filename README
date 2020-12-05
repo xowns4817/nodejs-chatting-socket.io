@@ -24,5 +24,6 @@
  - http://server url:port?roomId="채팅방 아이디"
  - 같은 채팅방에 있는 유저들끼리 대화 가능
 
-
-
+### [ 확장 예정 ]
+ 1. 현재 채팅중인방, 채팅인원 redis로 관리 
+ 2. 서버 여러대 확장을 고려해 redis-pub/sub or Mq( rabbitMq, zeroMq )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
