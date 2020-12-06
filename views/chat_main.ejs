@@ -20,7 +20,7 @@
             .item {
                 background-color: yellowgreen;
                 border: 1px solid black;
-                width: 200px;
+                width: 300px;
                 height: 100px;
                 text-align: center;
             }
@@ -69,6 +69,7 @@
             <button onclick="createNewRoom();">create new Room</button>
         </div>
         <div class="container">
+            <!--
             <div class="item" onclick="joinRoom(1)"> 
                     <div id="room-title-1">Room 1</div>
                     <div>joinMembers : 1</div>
@@ -87,6 +88,7 @@
                     <div>E, F, G, H</div>
                     <div>2020:12:05 11:58:00</div>
             </div>
+            -->
         </div>
  
  <!-- room title setting -->
@@ -95,7 +97,7 @@
     <div class="fg">
         <p>room title </p> <input type="text" id="roomTitle"><br><br>
         <div style="display: inline-block;">
-            <button onclick="roomModalClose();" type="button">ok</button>
+            <button onclick="roomModalOk();" type="button">ok</button>
             <button onclick="roomModalClose();" type="button">close</button>
         </div>
     </div>
@@ -107,6 +109,18 @@
     <div class="fg">
         <p>nickname </p> <input type="text" id="nickname"><br><br>
         <div style="display: inline-block;">
+            <button onclick="createAndJoinRoom();" type="button">ok</button>
+            <button onclick="nicknameModalClose();" type="button">close</button>
+        </div>
+    </div>
+</div>
+
+<!-- nickname setting -->
+<div id="nicknameModal2" class="modal">
+    <div class="bg"><!--이란에는 내용을 넣지 마십시오.--></div>
+    <div class="fg">
+        <p>nickname </p> <input type="text" id="nickname2"><br><br>
+        <div style="display: inline-block;">
             <button onclick="joinCall();" type="button">ok</button>
             <button onclick="nicknameModalClose();" type="button">close</button>
         </div>
@@ -116,19 +130,81 @@
     </body>
     <script>
       
-      function joinRoom(roomNum) {
-        alert(roomNum);
-        document.getElementById('nicknameModal').style.display='block'
+      window.onload = function() {
+        let roomData = '<%-roomData%>';
+        let roomDataArray = JSON.parse(roomData);
+
+        let listTag = document.getElementsByClassName("container")[0];
+        for(var i=0; i<roomDataArray.length; i++) {
+            let roomId = roomDataArray[i].id;
+            let roomTitle = roomDataArray[i].title;
+            let roomJoinMemberCnt = roomDataArray[i].join_member_count;
+            let roomCreated = roomDataArray[i].created;
+
+            let itemDiv = document.createElement("div");
+            itemDiv.className="item";
+            itemDiv.addEventListener("click", function( ){
+                alert(roomId);
+                joinRoom(roomId, roomTitle);
+            });
+
+            let roomTitleDiv = document.createElement("div");
+            roomTitleDiv.innerText=roomTitle;
+
+            let joinMemberCntDiv = document.createElement("div");
+            joinMemberCntDiv.innerText=roomJoinMemberCnt;
+
+            let roomCreatedDiv = document.createElement("div");
+            roomCreatedDiv.innerText=roomCreated;
+
+            itemDiv.appendChild(roomTitleDiv);
+            itemDiv.appendChild(joinMemberCntDiv);
+            itemDiv.appendChild(roomCreatedDiv);
+
+            listTag.appendChild(itemDiv);
+        };
+      };
+
+      let roomTitle=null;
+      let nickname=null;
+      let roomId=null;
+
+      function joinRoom(room_id, room_title) {
+        console.log(roomId);
+        roomId=room_id;
+        roomTitle=room_title;
+        document.getElementById('nicknameModal2').style.display='block'
+      };
+
+      function joinCall( ) {
+        nickname=document.getElementById("nickname2").value;
+
+        console.log(nickname);
+        console.log(roomId);
+        // move chatting room
+        location.href = `http://localhost:3000/chat/in/?roomId=${roomId}&roomTitle=${roomTitle}&nickname=${nickname}`;
       };
 
       // after setting nickname
-      function joinCall( ) {
-       
+      function createAndJoinRoom( ) {
+
+        nickname=document.getElementById("nickname").value;
+        
+        // create & move chatting room
+        console.log(roomTitle);
+        console.log(nickname);
+        location.href = `http://localhost:3000/chat?roomTitle=${roomTitle}&nickname=${nickname}`;
       };
 
       function createNewRoom( ) {
         document.getElementById('roomTitleModal').style.display='block'
       };
+
+      function roomModalOk( ) {
+        roomTitle = document.getElementById("roomTitle").value;
+        roomModalClose();
+        document.getElementById("nicknameModal").style.display="block";
+      }
 
       function roomModalClose( ) {
         document.getElementById('roomTitleModal').style.display='none'
@@ -136,6 +212,7 @@
 
       function nicknameModalClose( ) {
         document.getElementById('nicknameModal').style.display='none'
+        document.getElementById('nicknameModal2').style.display='none'
       };
 
     </script>

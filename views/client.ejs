@@ -13,20 +13,23 @@
   }
 	</script>
 	<script>
-            var socket = io('http://localhost:3000');
-            var roomId = "<%=roomId%>";
+			var socket = io('http://localhost:3000');
+			let roomId= "<%=roomId%>";
+			let roomTitle = "<%=roomTitle%>";
+			let nickname = "<%=nickname%>";
+
 			//서버와 연결되면 호출된다.
 			socket.on('connect', function(arg) {
 				console.log('server connect !');
-				socket.emit('joinRoom', {'roomId': roomId});
-
+				socket.emit('joinRoom', {'roomId': roomId, 'nickname': nickname});
+				
 				socket.on('msgAlert', function(data) {
 					alert(data);
 				});
 
 			socket.on('receive message', function(name, text, timeStamp) {
 				var P_Tag = document.createElement('p');
-				var msg = name + " " + text + "  " + timeStamp;
+				var msg = name + " : " + text + "  " + timeStamp;
 				if(name == $('#name').val()) {
 					P_Tag.className = 'myMessage';
 					msg = timeStamp + "  " + text;
@@ -78,8 +81,8 @@
             
             //채팅방 나가기
             function leave_room( ) {
-                socket.emit('leaveRoom', {'roomId': roomId});
-                window.open('about:blank','_self').self.close();  // 창 닫기
+                socket.emit('leaveRoom', {'roomId': roomId, 'nickname': nickname});
+                location.href="http://localhost:3000";
             }
 			</script>
 
@@ -157,7 +160,7 @@ body {
 </style>
 </head>
 <body>
-        <h1><%=roomId%></h1>
+        <h1><%=roomTitle%></h1>
         <button onclick="leave_room();"> 채팅방 나가기 </button>
 		<div id="chatLog" class="chatLog">
 				<p>김태준 : 매너 있는 채팅 부탁드립니다 :)</p>
