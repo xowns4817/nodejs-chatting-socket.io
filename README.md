@@ -8,19 +8,22 @@
  create DATABASE chatDb default character set utf8 collate utf8_general_ci;
  ```
  
- ### 채팅 방 테이블
+ ### 채팅 방 테이블 ( chatRoom )
   - 방이 만들어질때 insert되고 방이 없어질때 delete 된다.
  ```
+   create table chatRoom (
      id int not null auto_increment,
      title varchar(50) not null,
      join_member_count int not null,
      created datetime default current_timestamp,
      primary key(id)
+    );
  ```
  
- ### 채팅 방 참여 인원 테이블
+ ### 채팅 방 참여 인원 테이블 ( chatMember )
   - 맴버가 방에 참여할때 insert되고 방에서 나갈때 delete 된다.
   ```
+   create table chatMember ( 
     id int not null auto_increment,
     nickname varchar(50) not null,
     room_id int not null,
@@ -28,6 +31,7 @@
     join_time datetime default current_timestamp,
     primary key(id),
     foreign key(room_id) references chatRoom(id)
+   );
   ```
  
  ### 채팅 이력 테이블 ( chatMsg )
