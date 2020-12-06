@@ -9,7 +9,7 @@
  ```
  
  ### 채팅 방 테이블 ( chatRoom )
-  - 방이 만들어질때 insert되고 방이 없어질때 delete 된다.
+  - 현재 채팅중인 방 리스트 ( 방이 만들어질때 insert되고 방이 없어질때 delete 된다. )
  ```
    create table chatRoom (
      id int not null auto_increment,
@@ -21,7 +21,7 @@
  ```
  
  ### 채팅 방 참여 인원 테이블 ( chatMember )
-  - 맴버가 방에 참여할때 insert되고 방에서 나갈때 delete 된다.
+  - 현재 채팅방에 있는 맴버 리스트 ( 맴버가 방에 참여할때 insert되고 방에서 나갈때 delete 된다. )
   ```
    create table chatMember ( 
     id int not null auto_increment,
@@ -35,6 +35,7 @@
   ```
  
  ### 채팅 이력 테이블 ( chatMsg )
+  - 채팅방에서 채팅을 치면 이력이 남는다. -> 해당 방이 삭제되면 같이 delete 됨.
  ```
   create table chatMsg (
     id int not null auto_increment,
