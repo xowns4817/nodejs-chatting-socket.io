@@ -1,7 +1,11 @@
  
- ### nodejs - socket.io - mysql 
+ ### 사용 기술 스택
+  - nodejs
+  - socket.io
+  - mysql
+  - mongodb ( 사용 예정 )
+  - rabbit mq ( 사용 예정 )
 
- #### 채팅 history를 디비에 저장
 
  ### [ 데이터베이스 생성 ]
  ```
@@ -50,10 +54,27 @@
 
  
  ### 채방방 접속 방법
- - http://server url:port/
+ - http://server url:port
  - 같은 채팅방에 있는 유저들끼리 대화 가능
 
+### [ 구현된 기능 ]
+ 1. 채팅방 생성
+ 2. 채팅방 참여
+ 3. 같은방에서 채팅
+ 4. 채팅방 리스트 조회
+ 5. 채팅방에서 채팅중인 유저 조회
+ 
+ 
 ### [ 확장 예정 ]
- 1. 현재 채팅중인방, 채팅인원 
- 2. callback -> async await로 변경
- 3. 서버 여러대 확장을 고려해 redis-pub/sub or Mq( rabbitMq, zeroMq )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
+ 1. callback -> async await로 변경
+ 2. 서버 여러대 확장을 고려해 redis-pub/sub or Mq( rabbitMq, zeroMq )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
+ 3. 참여자 프로필 이미지 설정 ( 채팅방 참여 전 이미지 받음 )
+ 4. 로그 데이터 mongodb로 관린 ( 채팅방 create/delete,  채팅방에 참여자 in/out, 채팅 기록 )
+ 5. 현재는 채팅방에서 참가자 조회할때 매번 db select하는데.. ->  SessionStroage와 같은 캐시를 써서 매번 디비 안타케 처리
+ 
+### [ 처리중인 이슈 ]
+  1. 채팅방에서 leave 안날리고 브라우저를 닫았을때 -> disconnect 될때 out 처리 어떻게 해야되는지 ?  -> 이때는 leave를 못타니까..(소켓이 이미 닫혀버림),  파라미터로 오는 socket_id로 디비 조회해서 방정보, 참여자 정보를 삭제해야 되는가 ?
+  2. db connection release 처리 
+  
+  
+
