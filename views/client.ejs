@@ -13,10 +13,11 @@
   }
 	</script>
 	<script>
-			var socket = io('http://localhost:3000');
+			let socket = io('http://localhost:3000');
 			let roomId= "<%=roomId%>";
 			let roomTitle = "<%=roomTitle%>";
 			let nickname = "<%=nickname%>";
+			let toggleMembersCnt=0;
 
 			//서버와 연결되면 호출된다.
 			socket.on('connect', function(arg) {
@@ -57,7 +58,28 @@
 				P_Tag.appendChild(document.createTextNode(msg))
 				document.getElementById('chatLog').appendChild(P_Tag);
 				document.getElementById('chatLog').scrollTop = document.getElementById('chatLog').scrollHeight;
-			});  
+			}); 
+			
+			// res_members
+			socket.on('res members', function(data) {
+				let memberData = JSON.parse(data);
+				let memberDataLength = memberData.length;
+				let ulTag = document.getElementById("member_ul_list");
+				let memberCntTag = document.getElementById("member_cnt");
+				memberCntTag.innerText=memberDataLength;
+
+				while(ulTag.hasChildNodes()) {
+					ulTag.removeChild(ulTag.firstChild);
+				};
+
+				for(let i=0; i<memberDataLength; i++) {
+					let liTag = document.createElement("li");
+					liTag.innerText=memberData[i].nickname;
+					ulTag.appendChild(liTag);
+				};
+			
+				document.getElementById("member_list").style.display="block";
+			});
         });
 
 			function chat_submit() {
@@ -83,7 +105,16 @@
             function leave_room( ) {
                 socket.emit('leaveRoom', {'roomId': roomId, 'nickname': nickname});
                 location.href="http://localhost:3000";
-            }
+			}
+			
+			function show_members( ) {
+			    if(toggleMembersCnt % 2 == 0) {
+					//document.getElementById("member_list").style.display="block";
+					socket.emit("req members", roomId);
+				} else document.getElementById("member_list").style.display="none";
+
+			    toggleMembersCnt++;
+			};
 			</script>
 
 <style>
@@ -148,7 +179,7 @@ body {
 .message {
 	border: none;
 	height: 30px;
-	width: 50%;
+	width: 40%;
 }
 
 .chatBox button {
@@ -171,6 +202,14 @@ body {
 					<button onclick="rename_submit();">닉네임 변경</button>
 					<input id="message" onkeydown="JavaScript:Enter_Check();" class="message" type="text" autocomplete="off">
 					<button onclick="chat_submit();">전송</button>
+					<button onclick="show_members();">방 참여자 조회</button>
+			</div>
+			<div style="position: fixed; bottom:10%; right:5%; display: none;" id="member_list">
+				<span>joinMembers : </span><span id="member_cnt">0</span>
+				<ul id="member_ul_list">
+					<li>kim Coding</li>
+					<li>kim tae joon</li>
+				</ul>
 			</div>
 </body>
 </html>

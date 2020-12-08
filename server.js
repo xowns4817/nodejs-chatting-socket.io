@@ -158,6 +158,7 @@ io.on('connection', socket => {
 					if(err) throw(err);
 					leave_roomId=results[0].room_id;
 					leave_nickname=results[0].nickname;
+					io.to(leave_roomId).emit('out message', leave_nickname + '님이 퇴장하셨습니다.');
 					// delete out chatmember
 					conn.query('DELETE FROM chatMember where room_id = ? and nickname = ?', [leave_roomId, leave_nickname], function(err, results, fields) {
 						if(err) throw(err);
@@ -233,7 +234,21 @@ io.on('connection', socket => {
 		io.to(roomId).emit('receive message', oldNickName +'님이', name+'(으)로 닉네임을 변경했습니다.', getTimeStamp());
 		*/
 	});
-	
+
+	// select join members
+	socket.on("req members", function(roomId) {
+		console.log("req members");
+		pool.getConnection(function(err, conn){
+			if(err) throw err;
+			conn.query('SELECT * FROM chatMember where room_id = ?', [roomId], function(err, results, fields) {
+				if(err) throw(err);
+				console.log(results);
+				socket.emit("res members", JSON.stringify(results));
+				conn.release();
+			});
+		})
+	});
+
 	//퇴장 이벤트 -> leave 메시지를 보내면 해당 방에서 나가는 거고 socket 자체가 끊어지는것은 아님. 이부분 처리 필요.
 	 socket.on('leaveRoom', function(data){
 		let leave_roomId = data.roomId;
