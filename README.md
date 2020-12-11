@@ -70,7 +70,7 @@
  
 ### [ 확장 예정 ]
  1. callback -> async await로 변경
- 2. 서버 여러대 확장을 고려해 redis-pub/sub or Mq( rabbitMq, zeroMq )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
+ 2. 서버 여러대 확장을 고려해 redis-pub/sub, Mq( rabbitMq, kafka )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
  3. 참여자 프로필 이미지 설정 ( 채팅방 참여 전 이미지 받음 )
  4. 채팅방 이미지 업로드 기능
  5 로그 데이터 mongodb로 관리 ( 채팅방 create/delete,  채팅방에 참여자 in/out, 채팅 기록 )
