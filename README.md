@@ -8,6 +8,8 @@
   - spring boot ( 사용 예정 - file server )
   - docker 
   - pm2
+  - nginx
+  - jenkins
 
 
  ### [ 데이터베이스 생성 ]
