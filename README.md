@@ -1,10 +1,15 @@
  
  ### 사용 기술 스택
-  - nodejs
+  - nodejs ( rest server )
   - socket.io
   - mysql
   - mongodb ( 사용 예정 )
   - rabbit mq ( 사용 예정 )
+  - spring boot ( 사용 예정 - file server )
+  - docker 
+  - pm2
+  - nginx
+  - jenkins
 
 
  ### [ 데이터베이스 생성 ]
@@ -67,10 +72,11 @@
  
 ### [ 확장 예정 ]
  1. callback -> async await로 변경
- 2. 서버 여러대 확장을 고려해 redis-pub/sub or Mq( rabbitMq, zeroMq )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
+ 2. 서버 여러대 확장을 고려해 redis-pub/sub, Mq( rabbitMq, kafka )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
  3. 참여자 프로필 이미지 설정 ( 채팅방 참여 전 이미지 받음 )
- 4. 로그 데이터 mongodb로 관린 ( 채팅방 create/delete,  채팅방에 참여자 in/out, 채팅 기록 )
- 5. 현재는 채팅방에서 참가자 조회할때 매번 db select하는데.. ->  SessionStroage와 같은 캐시를 써서 매번 디비 안타케 처리
+ 4. 채팅방 이미지 업로드 기능
+ 5 로그 데이터 mongodb로 관리 ( 채팅방 create/delete,  채팅방에 참여자 in/out, 채팅 기록 )
+ 6. 현재는 채팅방에서 참가자 조회할때 매번 db select하는데.. ->  SessionStroage와 같은 캐시를 써서 매번 디비 안타케 처리
  
 ### [ 처리중인 이슈 ]
   1. 채팅방에서 leave 안날리고 브라우저를 닫았을때 -> disconnect 될때 out 처리 어떻게 해야되는지 ?  -> 이때는 leave를 못타니까..(소켓이 이미 닫혀버림),  파라미터로 오는 socket_id로 디비 조회해서 방정보, 참여자 정보를 삭제해야 되는가 ?
