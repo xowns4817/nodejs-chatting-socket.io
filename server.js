@@ -112,6 +112,10 @@ io.on('connection', socket => {
 	// 사용자의 소켓 아이디 출력
 	console.log('User Connected: ', socket.id);
 
+	setInterval(function( ){
+		socket.emit('heartBeat', JSON.stringify({cmd: "heartBeat", date : new Date()}));
+	}, 5000);
+	
 	socket.on('joinRoom', function(data) { // 원래는 인자로 data 받아야함 ( client에서 설정 )
 		let roomId = data.roomId;
 		let name=data.nickname;

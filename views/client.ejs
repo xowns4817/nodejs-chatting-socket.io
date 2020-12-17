@@ -22,6 +22,11 @@
 			//서버와 연결되면 호출된다.
 			socket.on('connect', function(arg) {
 				console.log('server connect !');
+
+				socket.on("heartBeat", function(data) {
+					console.log(JSON.parse(data));
+				});
+
 				socket.emit('joinRoom', {'roomId': roomId, 'nickname': nickname});
 				
 				socket.on('msgAlert', function(data) {
