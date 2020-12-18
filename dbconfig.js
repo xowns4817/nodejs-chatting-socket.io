@@ -1,4 +1,6 @@
 let mysql = require('mysql');
+const mysql2 = require('mysql2/promise');
+
 
 //커넥션 연결
 let dbConfig = {
@@ -11,5 +13,5 @@ let dbConfig = {
     connectionLimit: 50
 };
 
-var pool = mysql.createPool(dbConfig);
-module.exports = pool;
+module.exports.getMysqlPool = mysql.createPool(dbConfig);
+module.exports.getMysql2Pool = mysql2.createPool(dbConfig);

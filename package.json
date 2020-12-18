@@ -1,0 +1,29 @@
+{
+  "name": "nodejs-chatting-socket.io",
+  "version": "1.0.0",
+  "description": "- nodejs ( rest server )   - socket.io   - mysql   - mongodb ( 사용 예정 )   - rabbit mq ( 사용 예정 )   - spring boot ( 사용 예정 - file server )   - docker    - pm2   - nginx   - jenkins",
+  "main": "dbconfig.js",
+  "dependencies": {
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
+    "mysql2-promise": "^0.1.4",
+    "socket.io": "^3.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xowns4817/nodejs-chatting-socket.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xowns4817/nodejs-chatting-socket.io/issues"
+  },
+  "homepage": "https://github.com/xowns4817/nodejs-chatting-socket.io#readme"
+}

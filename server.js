@@ -7,7 +7,8 @@
 const express = require('express');
 const app = express( );
 const http = require('http')
-const pool = require('./dbconfig');
+const pool2 = require('./dbconfig').getMysql2Pool;
+const pool = require("./dbconfig").getMysqlPool;
 //const redisClient = require('./redisconfig');
 const ejs = require('ejs');
 const bodyParser = require('body-parser');
@@ -20,18 +21,33 @@ app.use(bodyParser.json());
 var server = http.createServer(app);
 server.listen(3000, function( ){
 	console.log("Connect Server !");
-	//console.log(date_module);
 })
 //app.use(express.static('/public'));
 
 var tempNick = ["감자탕","맛탕","새우탕","그라탕","갈비탕","백설탕"];
 
 // main page
-app.get('/', function(req, res) {
+app.get('/', async (req, res) => {
+	try {
+		const connection = await pool2.getConnection(async conn => conn);
+		try {
+			const sql = 'SELECT * FROM chatRoom';
+			const [rows] = await connection.query(sql);
+			res.render('chat_main', {"roomData": JSON.stringify(rows)});
+		} catch(err) {
+			console.log("Query Error : ", err);
+		} finally {
+			connection.release();
+		}
+	} catch (err) {
+		console.log("DB Connection Error : ", err);
+	}
+
 	//chatRoom, chatMember select
+	/*
 	pool.getConnection(function(err, conn) {
 		if(err) throw(err);
-		conn.query('SELECT * FROM chatRoom', (err, rows, filds)=> {
+		conn.query('SELECT * FROM chatRoom', (err, rows, fields)=> {
 			if(err) throw(err);
 			else {
 				console.log(rows);
@@ -39,6 +55,7 @@ app.get('/', function(req, res) {
 			};
 		});
 	});
+*/
 });
 
 // move chatting room
@@ -47,11 +64,29 @@ app.get("/chat/in", function(req, res) {
 	let roomId = req.query.roomId;
 	let nickname = req.query.nickname;
 	let roomTitle = req.query.roomTitle;
-
-	console.log(roomId);
-	console.log(nickname);
-	console.log(roomTitle);
 	
+	try {
+		const connection = await pool2.getConnection(async conn => conn);
+		try {
+			let timestamp = getTimeStamp();
+			const insert_sql = 'INSERT INTO chatMember(NICKNAME, ROOM_ID, JOIN_TIME) values(?, ?, ?)';
+			const [results] =await connection.query(insert_sql, [nickname, roomId, timestamp]);
+			console.log("rows : " + results);
+
+			const update_sql = 'UPDATE chatRoom set join_member_count = join_member_count + 1 where id = ?';
+			const [results2] = await connection.query(update_sql, [roomId]);
+			console.log("rows2 : " + results2);
+
+			res.render('client', {"roomId": roomId, "roomTitle": roomTitle, "nickname": nickname});
+		} catch(err) {
+			console.log("Query Error : ", err);
+		} finally {
+			connection.release();
+		}
+	} catch(err) {
+		console.log("DB Connection Error : ", error);
+	}
+	/*
 	pool.getConnection(function(err, conn) {
 		if(err) throw(err);
 		var timestamp = getTimeStamp( );
@@ -68,18 +103,43 @@ app.get("/chat/in", function(req, res) {
 				})
 			});
 		});
+	*/
 });
 
 // create chatting room
 app.get('/chat', function(req, res) {
-	console.log(req.query.roomTitle);
-	console.log(req.query.nickname);
-
 	let roomTitle = req.query.roomTitle;
 	let nickname = req.query.nickname;
 	let roomId = null;
 
-	// chatRoom insert
+	// chatRoom insert -> 트랜잭션 설정 필요
+	try {
+		const connection = await pool2.getConnection(async conn => conn);
+		try {
+			let timestamp = getTimeStamp( );
+			const sql = 'INSERT INTO chatRoom(TITLE, JOIN_MEMBER_COUNT, CREATED) values(?, ?, ?)';
+			const [rows] = await connection.query(sql, [roomTitle, 0, timestamp]);
+			roomId = rows.insertId;
+
+			const sql2 = 'INSERT INTO chatMember(NICKNAME, ROOM_ID, JOIN_TIME) values(?, ?, ?)';
+			const [rows2] = await connection.query(sql2, [nickname, roomId, timestamp]);
+
+			// update chatRoom join_member_cnt
+			const sql3 = 'UPDATE chatRoom set join_member_count = join_member_count + 1 where id = ?';
+			const [rows3] = await connection.query(sql3, [roomId])
+			res.render('client', {"roomId": roomId, "roomTitle" : roomTitle, "nickname": nickname});
+
+		} catch(err) {
+
+		} finally {
+			connection.release();
+		}
+	} catch(err) {
+		console.log("DB Connection Error : " + err);
+
+	}
+	
+	/*
 	pool.getConnection(function(err, conn) {
 		if(err) throw(err);
 		var timestamp = getTimeStamp( );
@@ -104,7 +164,7 @@ app.get('/chat', function(req, res) {
 		   else console.log(err);
 		});
 	});
-	
+	*/
 });
 
 var io = require('socket.io')(server);
@@ -129,6 +189,7 @@ io.on('connection', socket => {
 			if(err) throw(err);
 			conn.query('UPDATE chatMember set socket_id = ? where room_id = ? and nickname = ?', [socket.id, roomId, name], function(err, results, fields) {
 				if(err) throw(err);
+				conn.release();
 			});
 	   });
 
@@ -140,6 +201,8 @@ io.on('connection', socket => {
 				if(!err) for(let i=0; i<rows.length; i++) {
 					io.to(socket.id).emit('receive message', rows[i].nickname, rows[i].content, rows[i].chat_time);
 				} else console.log(err);
+
+				conn.release();
 			});
 		});
 
@@ -154,6 +217,49 @@ io.on('connection', socket => {
 		let leave_roomId=null;
 		let leave_nickname=null;
 
+		try {
+			const connection = await pool2.getConnection(async conn => conn);
+			try {
+				// select roomId, nickname, from socket_id ( chatMember )
+				const sql = 'SELECT * FROM chatMember where socker_id = ?';
+				const [rows] = await connection.query(sql, [socket.id]);
+				leave_roomId=rows[0].room_id;
+				leave_nickname=results[0].nickname;
+				io.to(leave_roomId).emit('out message', leave_nickname + '님이 퇴장하셨습니다.');
+
+				// delete out member
+				const sql2 = 'DELETE FROM chatMember where room_id = ? and nickname = ?';
+				const [rows2] = await connection.query(sql2, [leave_roomId, leave_nickname]);
+
+				// update join_member_count
+				const sql3 = 'UPDATE chatRoom set join_member_count = join_member_count - 1 where id = ?';
+				const [row3] = await connection.query(sql3, [leave_roomId]);
+
+				// select join_member_count
+				const sql4 = 'SELECT join_member_count from chatRoom where id = ?';
+				const [row4] = await connection.query(sql4, [leave_roomId]);
+
+				// delete chatRoom
+				if(row4[0].join_member_count === 0 ) {
+
+					//delete chatting Msg
+					const sql5 = 'DELETE from chatMsg where room_id = ?';
+					const [row5] = await connection.query(sql5, [leave_roomId]);
+
+					//delete chatRoom
+					const sql6 = 'DELETE FROM chatRoom where id = ?';
+					const [row6] = await connection.query(sql6, [leave_roomId]);
+				}
+			} catch(err) {
+				console.log("Query Error : " + err);
+			} finally {
+				connection.release();
+			}
+		} catch(err) {
+			console.log("DB Connection Error : " + err);
+		}
+		
+/*
 		pool.getConnection(function(err, conn){
 			if(err) throw err;
 			else {
@@ -196,6 +302,7 @@ io.on('connection', socket => {
 			});
 			};
 		});
+*/
 	});
 });
 

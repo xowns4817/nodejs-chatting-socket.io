@@ -15,12 +15,6 @@
 				socket.on('msgAlert', function(data) {
 					alert(data);
 				});
-
-				/*
-				$('#leaveRoomBtn').click(function(){
-					socket.emit('leaveRoom', {room: 'room1'});
-				})
-			*/
 			});
 			
 			socket.on('receive message', function(name, text, timeStamp) {
