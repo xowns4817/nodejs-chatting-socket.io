@@ -33,16 +33,31 @@
 					alert(data);
 				});
 
+		    // add profile img
 			socket.on('receive message', function(name, text, timeStamp) {
+				var chatP_Tag = document.createElement("p");
+				var imgTag = document.createElement("img");
 				var P_Tag = document.createElement('p');
-				var msg = name + " : " + text + "  " + timeStamp;
-				if(name == $('#name').val()) {
+				
+				if(name == $('#name').val()) { // my
 					P_Tag.className = 'myMessage';
 					msg = timeStamp + "  " + text;
-				}
+					P_Tag.appendChild(document.createTextNode(msg))
+					document.getElementById('chatLog').appendChild(P_Tag);
+				} else { // other
+					chatP_Tag.style.display="inline-block";
+					var msg = name + " : " + text + "  " + timeStamp;
+					imgTag.style.width="50px";
+					imgTag.style.height="50px";
+					imgTag.src="http://localhost:3000/baseProfile.png";
+				
+					P_Tag.appendChild(document.createTextNode(msg))
 
-				P_Tag.appendChild(document.createTextNode(msg))
-				document.getElementById('chatLog').appendChild(P_Tag);
+					chatP_Tag.appendChild(imgTag);
+					chatP_Tag.appendChild(P_Tag);
+					
+					document.getElementById('chatLog').appendChild(chatP_Tag);
+				}
 				document.getElementById('chatLog').scrollTop = document.getElementById('chatLog').scrollHeight;
 			});
 			socket.on('change name', function(name) {
