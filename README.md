@@ -84,9 +84,34 @@
  3. 채팅방 이미지 업로드 기능
  4 로그 데이터 mongodb로 관리 ( 채팅방 create/delete,  채팅방에 참여자 in/out, 채팅 기록 )
  5. 현재는 채팅방에서 참가자 조회할때 매번 db select하는데.. ->  SessionStroage와 같은 캐시를 써서 매번 디비 안타케 처리
+ 6. winston으로 로그 관리
  
-### [ 처리중인 이슈 ]
-  
-  
+ 
+### 사용법
+ - npm install pm2 -g
+ - pm2 start start.config.js  ( developement으로 실행)  production으로 실행하고 싶으면 pm2 start start.config.js --evn production
+ https://pm2.keymetrics.io/docs/usage/environment/
+ 
+ // start.config.js
+  ```
+  module.exports = {
+    apps : [
+        {
+          name: "chattingServer",
+          script: "./server.js",
+          watch: true,
+          out_file: "/dev/null",
+          error_file: "/dev/null",
+          env: {
+              "PORT": 3000,
+              "NODE_ENV": "development"
+          },
+          env_production: {
+            "NODE_ENV": "production"
+          }
+        }
+    ]
+  }
+  ```
   
 
