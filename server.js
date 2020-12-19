@@ -9,14 +9,19 @@ const app = express( );
 const http = require('http')
 const pool2 = require('./dbconfig').getMysql2Pool; // sync (promise)
 const pool = require("./dbconfig").getMysqlPool; // async (callback)
+const util = require("./util/common");
 //const redisClient = require('./redisconfig');
 const ejs = require('ejs');
+const chatRouter = require("./router/chat.js");
 const bodyParser = require('body-parser');
 
 app.set('views', __dirname + '/views');
 app.set('view engine',  'ejs');
+
+app.use('/chat', chatRouter); // 채팅 관련 api는 chat.js로 포워딩
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+
 
 var server = http.createServer(app);
 server.listen(3000, function( ){
@@ -24,94 +29,6 @@ server.listen(3000, function( ){
 })
 //app.use(express.static('/public'));
 
-// main page
-app.get('/', async (req, res) => {
-	try {
-		const connection = await pool2.getConnection(async conn => conn);
-		try {
-			const sql = 'SELECT * FROM chatRoom';
-			const [rows] = await connection.query(sql);
-			res.render('chat_main', {"roomData": JSON.stringify(rows)});
-		} catch(err) {
-			console.log("Query Error : ", err);
-		} finally {
-			connection.release();
-		}
-	} catch (err) {
-		console.log("DB Connection Error : ", err);
-	}
-});
-
-// move chatting room
-app.get("/chat/in", async function(req, res) {
-	
-	let roomId = req.query.roomId;
-	let nickname = req.query.nickname;
-	let roomTitle = req.query.roomTitle;
-	
-	try {
-		const connection = await pool2.getConnection(async conn => conn);
-		try {
-			let timestamp = getTimeStamp();
-			const insert_sql = 'INSERT INTO chatMember(NICKNAME, ROOM_ID, JOIN_TIME) values(?, ?, ?)';
-			
-			await connection.beginTransaction(); // start transaction
-			const [results] = await connection.query(insert_sql, [nickname, roomId, timestamp]);
-
-			const update_sql = 'UPDATE chatRoom set join_member_count = join_member_count + 1 where id = ?';
-			const [results2] = await connection.query(update_sql, [roomId]);
-			await connection.commit(); // commit
-
-			res.render('client', {"roomId": roomId, "roomTitle": roomTitle, "nickname": nickname});
-		} catch(err) {
-			console.log("Query Error : ", err);
-			await connection.rollback();
-		} finally {
-			connection.release();
-		}
-	} catch(err) {
-		console.log("DB Connection Error : ", error);
-	}
-});
-
-// create chatting room
-app.get('/chat', async function(req, res) {
-	let roomTitle = req.query.roomTitle;
-	let nickname = req.query.nickname;
-	let roomId = null;
-
-	// chatRoom insert -> 트랜잭션 설정 필요
-	try {
-		const connection = await pool2.getConnection(async conn => conn);
-		try {
-			let timestamp = getTimeStamp( );
-			const sql = 'INSERT INTO chatRoom(TITLE, JOIN_MEMBER_COUNT, CREATED) values(?, ?, ?)';
-
-			await connection.beginTransaction(); // start tranaction
-			const [rows] = await connection.query(sql, [roomTitle, 0, timestamp]);
-			roomId = rows.insertId;
-
-			const sql2 = 'INSERT INTO chatMember(NICKNAME, ROOM_ID, JOIN_TIME) values(?, ?, ?)';
-			const [rows2] = await connection.query(sql2, [nickname, roomId, timestamp]);
-
-			// update chatRoom join_member_cnt
-			const sql3 = 'UPDATE chatRoom set join_member_count = join_member_count + 1 where id = ?';
-			const [rows3] = await connection.query(sql3, [roomId]);
-
-			await connection.commit( ); // commit
-			res.render('client', {"roomId": roomId, "roomTitle" : roomTitle, "nickname": nickname});
-
-		} catch(err) {
-			console.log("Query Error " + err);
-			await connection.rollback();
-		} finally {
-			connection.release();
-		}
-	} catch(err) {
-		console.log("DB Connection Error : " + err);
-
-	}
-});
 
 var io = require('socket.io')(server);
 io.on('connection', socket => {
@@ -216,7 +133,7 @@ io.on('connection', socket => {
 			//massage = name + ' : ' + text;
 			console.log(socket.id + '(' + name + ') : ' + text + ", roomId : " + roomId);
 			// (전체)사용자에게 메세지 전달 
-			var timestamp = getTimeStamp( );
+			var timestamp = util.getTimeStamp( );
 			io.to(roomId).emit('receive message', name, text, timestamp);
 
 			//db write
@@ -274,28 +191,3 @@ io.on('connection', socket => {
 		io.to(leave_roomId).emit('out message', leave_nickname + '님이 퇴장하셨습니다.');
 	 });
 });
-
-function getTimeStamp() {
-    var d = new Date();
-    var s =
-      leadingZeros(d.getFullYear(), 4) + '-' +
-      leadingZeros(d.getMonth() + 1, 2) + '-' +
-      leadingZeros(d.getDate(), 2) + ' ' +
-  
-      leadingZeros(d.getHours(), 2) + ':' +
-      leadingZeros(d.getMinutes(), 2) + ':' +
-      leadingZeros(d.getSeconds(), 2);
-  
-    return s;
-  }
-  
-  function leadingZeros(n, digits) {
-    var zero = '';
-    n = n.toString();
-  
-    if (n.length < digits) {
-      for (i = 0; i < digits - n.length; i++)
-        zero += '0';
-    }
-    return zero + n;
-  }

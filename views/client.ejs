@@ -109,7 +109,7 @@
             //채팅방 나가기
             function leave_room( ) {
                 socket.emit('leaveRoom', {'roomId': roomId, 'nickname': nickname});
-                location.href="http://localhost:3000";
+                location.href="http://localhost:3000/chat";
 			}
 			
 			function show_members( ) {
