@@ -87,7 +87,7 @@
  6. winston으로 로그 관리
  
  
-### 사용법
+### [사용법]
  - npm install pm2 -g
  - pm2 start start.config.js  ( developement으로 실행)  production으로 실행하고 싶으면 pm2 start start.config.js --evn production
  https://pm2.keymetrics.io/docs/usage/environment/
