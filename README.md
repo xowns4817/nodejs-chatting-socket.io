@@ -11,6 +11,14 @@
   - nginx
   - jenkins
 
+### 코드 구조
+ 
+ ![코드 구조](https://user-images.githubusercontent.com/21052356/102683665-e80f5f00-4215-11eb-8f44-3582cfe335db.PNG)
+ 
+ - router : api request 처리 ( 지금은 채팅관련 api만 있으므로 chat.js만 만들어놈 )
+ - util : 공통 모듈 처리
+ - view : 화면 처리
+ - server.js : 소켓관련 로직 처리
 
  ### [ 데이터베이스 생성 ]
  ```
