@@ -10,6 +10,7 @@
   - pm2
   - nginx
   - jenkins
+  - redis (pub/sub), replica, sentinel(failover 처리) 
 
 ### 코드 구조
  
