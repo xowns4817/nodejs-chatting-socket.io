@@ -10,7 +10,16 @@ const http = require('http')
 const pool2 = require('./dbconfig').getMysql2Pool; // sync (promise)
 const pool = require("./dbconfig").getMysqlPool; // async (callback)
 const util = require("./util/common");
-//const redisClient = require('./redisconfig');
+const redis = require('redis');
+const redisPubClient = redis.createClient({  
+	host: "127.0.0.1",
+	port: 6379
+});
+const redisSubClient = redis.createClient({  
+	host: "127.0.0.1",
+	port: 6379	
+});
+
 const ejs = require('ejs');
 const chatRouter = require("./router/chat.js");
 const bodyParser = require('body-parser');
@@ -19,33 +28,78 @@ app.set('views', __dirname + '/views');
 app.set('view engine',  'ejs');
 
 app.use('/chat', chatRouter); // 채팅 관련 api는 chat.js로 포워딩
+
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 
 var server = http.createServer(app);
 server.listen(3000, function( ){
+	//console.log("env : " + process.env.NODE_ENV);
 	console.log("Connect Server !");
-})
-//app.use(express.static('/public'));
+});
 
+app.use(express.static('public'));
 
 var io = require('socket.io')(server);
+
+// subscribe channel
+redisSubClient.subscribe("heartBeat");
+redisSubClient.subscribe("msgAlert");
+redisSubClient.subscribe("in_message");
+redisSubClient.subscribe("out_message");
+redisSubClient.subscribe("receive_message");
+
 io.on('connection', socket => {
 	// 사용자의 소켓 아이디 출력
 	console.log('User Connected: ', socket.id);
+	let roomId=null;
+
+	// receive on channel Data
+	redisSubClient.on('message', function(channel, message) {
+		console.log('message: ' + message + ' channel: ' + channel);	
+
+		message = JSON.parse(message);
+		
+		if(roomId===message.roomId) {
+		// 서버당 요청 1번씩만 broadCast해주려면...
+		switch(channel) {
+			case 'heartBeat':
+				socket.emit('heartBeat', message);
+				break;
+			case 'msgAlert':
+				io.to(socket.id).emit('msgAlert', message.name + '님이 ' + message.roomId + '방에 참여하셨습니다.');
+				break;
+			case 'in_message':
+				io.to(socket.id).emit('in_message', message.name + '님이 입장하셨습니다.');
+				break;
+			case 'out_message':
+				io.to(socket.id).emit('out_message', message.name + '님이 퇴장하셨습니다.');
+				break;
+			case 'receive_message':
+				io.to(socket.id).emit('receive_message', message.nickname, message.content, message.chat_time);
+				break;
+			default:
+				break;
+		} 
+		};
+	});
 
 	setInterval(function( ){
-		socket.emit('heartBeat', JSON.stringify({cmd: "heartBeat", date : new Date()}));
+		//redisPubClient.publish('heartBeat',JSON.stringify({cmd: "heartBeat", date : new Date()}));
 	}, 5000);
 	
 	socket.on('joinRoom', function(data) { // 원래는 인자로 data 받아야함 ( client에서 설정 )
-		let roomId = data.roomId;
+		roomId = data.roomId;
 		let name=data.nickname;
 
-		socket.join(roomId); // 새로운 방 들어간다.
-		//var name = tempNick[Math.floor(Math.random()*6)];
-		io.to(roomId).emit('msgAlert', name + '님이 ' + roomId + '방에 참여하셨습니다.');
+		socket.join(roomId); // 새로운 방 들어간다.		
+		//io.to(roomId).emit('msgAlert', name + '님이 ' + roomId + '방에 참여하셨습니다.');
+		
+		let alertObj={ };
+		alertObj.name = name;
+		alertObj.roomId = roomId;
+		redisPubClient.publish('msgAlert', JSON.stringify(alertObj));
 
 	   // roomId, socket_id mapping
 	   pool.getConnection(function(err, conn) {
@@ -57,22 +111,37 @@ io.on('connection', socket => {
 	   });
 
 		// 채팅방 history 조회
+		/*
 		pool.getConnection(function(err, conn) {
 			if(err) throw(err);
 				conn.query('SELECT * FROM chatMsg Where ROOM_ID = ?', [roomId], (err, rows, filds)=> {
-				//console.log(rows);
+				let chatObj = { };
+
 				if(!err) for(let i=0; i<rows.length; i++) {
-					io.to(socket.id).emit('receive message', rows[i].nickname, rows[i].content, rows[i].chat_time);
+					chatObj
+					chatObj.nickname = rows[i].nickname;
+					chatObj.content = rows[i].content;
+					chatObj.chat_time = rows[i].chat_time;
+
+					io.to(socket.id).emit('receive_message', rows[i].nickname, rows[i].content, rows[i].chat_time);
+					redisPubClient.publish('receive_message', JSON.stringify(chatObj));
 				} else console.log(err);
 
 				conn.release();
 			});
 		});
+		*/
 
-	// 사용자에게 변경된 닉네임을 보내줌
-	io.to(socket.id).emit('change name', name);
+	// 사용자에게 변경된 닉네임을 보내줌 (me)
+	io.to(socket.id).emit('change_name', name);
 	//사용자 입장 알림
-	io.to(roomId).emit('in message', name + '님이 입장하셨습니다.');	
+	//io.to(roomId).emit('in_message', name + '님이 입장하셨습니다.');	
+	let inObj = { };
+	inObj.name=name;
+	inObj.roomId=roomId;
+	console.log("publish in_message !");
+	redisPubClient.publish('in_message', JSON.stringify(inObj));
+
 	// 사용자의 연결이 끊어지면
 	socket.on('disconnect', async () => {
 		console.log('User Disconnected: ', socket.id);
@@ -90,7 +159,12 @@ io.on('connection', socket => {
 				const [rows] = await connection.query(sql, [socket.id]);
 				leave_roomId=rows[0].room_id;
 				leave_nickname=rows[0].nickname;
-				io.to(leave_roomId).emit('out message', leave_nickname + '님이 퇴장하셨습니다.');
+
+				let outObj = { };
+				outObj.name=leave_nickname;
+				outObj.roomId=leave_roomId;
+				//io.to(leave_roomId).emit('out_message', leave_nickname + '님이 퇴장하셨습니다.');
+				redisPubClient.publish('out_message', JSON.stringify(outObj));
 
 				// delete out member
 				const sql2 = 'DELETE FROM chatMember where room_id = ? and nickname = ?';
@@ -134,7 +208,15 @@ io.on('connection', socket => {
 			console.log(socket.id + '(' + name + ') : ' + text + ", roomId : " + roomId);
 			// (전체)사용자에게 메세지 전달 
 			var timestamp = util.getTimeStamp( );
-			io.to(roomId).emit('receive message', name, text, timestamp);
+			let chatObj = { };
+			chatObj.roomId=roomId;
+			chatObj.nickname = name;
+			chatObj.content = text;
+			chatObj.chat_time = timestamp;
+
+			//io.to(roomId).emit('receive_message', name, text, timestamp);
+			// publish data to channel
+			redisPubClient.publish("receive_message", JSON.stringify(chatObj));
 
 			//db write
 			pool.getConnection(function(err, conn){
@@ -170,13 +252,11 @@ io.on('connection', socket => {
 
 	// select join members
 	socket.on("req members", function(roomId) {
-		console.log("req members");
 		pool.getConnection(function(err, conn){
 			if(err) throw err;
 			conn.query('SELECT * FROM chatMember where room_id = ?', [roomId], function(err, results, fields) {
 				if(err) throw(err);
-				console.log(results);
-				socket.emit("res members", JSON.stringify(results));
+				io.to(socket.id).emit("res_members", JSON.stringify(results));
 				conn.release();
 			});
 		})
@@ -188,6 +268,11 @@ io.on('connection', socket => {
 		let leave_nickname = data.nickname;
 		socket.leave(leave_roomId);
 
-		io.to(leave_roomId).emit('out message', leave_nickname + '님이 퇴장하셨습니다.');
+		let outObj = { };
+		outObj.name=leave_nickname;
+		outObj.roomId=leave_roomId;
+
+		//io.to(leave_roomId).emit('out_message', leave_nickname + '님이 퇴장하셨습니다.');
+		redisPubClient.publish('out_message', JSON.stringify(outObj));
 	 });
 });

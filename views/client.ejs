@@ -34,7 +34,7 @@
 				});
 
 		    // add profile img
-			socket.on('receive message', function(name, text, timeStamp) {
+			socket.on('receive_message', function(name, text, timeStamp) {
 				var chatP_Tag = document.createElement("p");
 				var imgTag = document.createElement("img");
 				var P_Tag = document.createElement('p');
@@ -60,12 +60,12 @@
 				}
 				document.getElementById('chatLog').scrollTop = document.getElementById('chatLog').scrollHeight;
 			});
-			socket.on('change name', function(name) {
+			socket.on('change_name', function(name) {
 				$('#name').val(name);
 			});
  
 			//입장 알림 메시지
-			socket.on('in message', function(msg) {
+			socket.on('in_message', function(msg) {
 				var P_Tag = document.createElement('p');
 				P_Tag.appendChild(document.createTextNode(msg))
 				document.getElementById('chatLog').appendChild(P_Tag);
@@ -73,7 +73,7 @@
 			});
 
 			//퇴장 알림 메시지
-			socket.on('out message', function(msg) {
+			socket.on('out_message', function(msg) {
 				var P_Tag = document.createElement('p');
 				P_Tag.appendChild(document.createTextNode(msg))
 				document.getElementById('chatLog').appendChild(P_Tag);
@@ -81,7 +81,7 @@
 			}); 
 			
 			// res_members
-			socket.on('res members', function(data) {
+			socket.on('res_members', function(data) {
 				let memberData = JSON.parse(data);
 				let memberDataLength = memberData.length;
 				let ulTag = document.getElementById("member_ul_list");
