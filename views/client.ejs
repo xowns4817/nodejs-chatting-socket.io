@@ -5,12 +5,12 @@
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="//code.jquery.com/jquery-1.11.1.js"></script>
 	<script>
-		  function guid() {
-    function s4() {
-      return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
-    }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-  }
+		function guid() {
+		function s4() {
+			return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+		}
+			return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+  		}
 	</script>
 	<script>
 			let socket = io('http://localhost:3000');
