@@ -115,4 +115,13 @@
   }
   ```
   
-
+  
+ ### [ 서버가 1대 일때 채팅서버 구조 ]
+  - socket.io 만으로 처리가능. ( 해당 roomId에 있는 유저들에게 메시지를 보낸다. socket.io의 to 함수를 사용하면 특정 socket.id 또는 특정 room에 있는 소켓들에게 메시지 전송 가능 )
+ 
+ ### [ 서버가 여러대 일때 채팅서버 구조 ]
+  - socket.io 만으로는 처리 불가.  각 서버는 메모리에 다른 프로세스로 떠있기 때문에 프로세스 사이의 데이터 공유 못함.  -> redis pub/sub을 통해 가능하다.
+  - 대략 flow는 다음과 같다.
+    - 각 서버들은 redis의 특정 채널을 subscribe를 하고 Client의 요청이 들어오면 요청을 받은 서버는 해당 요청을 redis로 publish를 날려서 다른 서버들이 메시지를 받을 수 있게 한다.
+  
+![캡처](https://user-images.githubusercontent.com/21052356/102793419-37f44e80-43ed-11eb-8283-7e4ed5e90727.png)
