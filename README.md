@@ -68,7 +68,7 @@
 
  
  ### 채방방 접속 방법
- - http://server url:port
+ - http://server url:port/chat
  - 같은 채팅방에 있는 유저들끼리 대화 가능
 
 ### [ 구현된 기능 ]
@@ -95,7 +95,7 @@
  - https://pm2.keymetrics.io/docs/usage/environment/
  
  #### [ single mode -> 서버 1대]
- // start.config.js
+ - // start.config.js
   ```
   module.exports = {
     apps : [
@@ -119,7 +119,7 @@
   
   #### [ cluster mode -> 서버 여러대 ]
   - https://pm2.keymetrics.io/docs/usage/cluster-mode/
-  // start.config.cluster.json
+  - // start.config.cluster.json
   ```
   {
     "apps": [
