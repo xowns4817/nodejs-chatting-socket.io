@@ -94,7 +94,7 @@
  - pm2 start start.config.js  ( developement으로 실행)  production으로 실행하고 싶으면 pm2 start start.config.js --evn production
  - https://pm2.keymetrics.io/docs/usage/environment/
  
- #### [ single mode -> 서버 1대]
+ #### [ single mode -> 서버 1대 - fork mode]
  - // start.config.js
   ```
   module.exports = {
@@ -118,7 +118,7 @@
   ```
   ![fork_mode](https://user-images.githubusercontent.com/21052356/102951947-e0082700-4482-11eb-8839-aae12ba54ee4.png)
   
-  #### [ cluster mode -> 서버 여러대 ]
+  #### [ cluster mode -> 서버 여러대 - cluster mode]
   - https://pm2.keymetrics.io/docs/usage/cluster-mode/
   - // start.config.cluster.json
   ```
