@@ -120,7 +120,8 @@
   
   #### [ cluster mode -> 서버 여러대 - cluster mode]
   - https://pm2.keymetrics.io/docs/usage/cluster-mode/
-  - // start.config.cluster.json
+  - pm2 cluster mode를 사용하면 cluster로 묶인 서버들은 pm2를 통해 load balancing이 된다. 각 서버들은 같은 port를 공유한다.
+  - // start.config.cluster.json 
   ```
   {
     "apps": [
