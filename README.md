@@ -92,7 +92,7 @@
 ### [사용법]
  - npm install pm2 -g
  - pm2 start start.config.js  ( developement으로 실행)  production으로 실행하고 싶으면 pm2 start start.config.js --evn production
- https://pm2.keymetrics.io/docs/usage/environment/
+ - https://pm2.keymetrics.io/docs/usage/environment/
  
  #### [ single mode -> 서버 1대]
  // start.config.js
@@ -118,6 +118,8 @@
   ```
   
   #### [ cluster mode -> 서버 여러대 ]
+  - https://pm2.keymetrics.io/docs/usage/cluster-mode/
+  // start.config.cluster.json
   ```
   {
     "apps": [
