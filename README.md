@@ -128,7 +128,7 @@
       {
         "name": "chatting cluster",
         "script": "./server.js",
-        "instances": 2,
+        "instances": 2, // cpu core 갯수,  0으로 설정하면 pc의 최대 core 갯수
         "exec_mode": "cluster",
         "env": {
           "NODE_ENV": "production",
