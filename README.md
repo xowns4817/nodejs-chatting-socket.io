@@ -116,6 +116,7 @@
     ]
   }
   ```
+  ![fork_mode](https://user-images.githubusercontent.com/21052356/102951947-e0082700-4482-11eb-8839-aae12ba54ee4.png)
   
   #### [ cluster mode -> 서버 여러대 ]
   - https://pm2.keymetrics.io/docs/usage/cluster-mode/
@@ -137,6 +138,7 @@
   } 
   
   ```
+  ![cluster_mode](https://user-images.githubusercontent.com/21052356/102952000-f57d5100-4482-11eb-8f80-6646b659ec58.png)
   
  ### [ 서버가 1대 일때 채팅서버 구조 ]
   - socket.io 만으로 처리가능. ( 해당 roomId에 있는 유저들에게 메시지를 보낸다. socket.io의 to 함수를 사용하면 특정 socket.id 또는 특정 room에 있는 소켓들에게 메시지 전송 가능 )
