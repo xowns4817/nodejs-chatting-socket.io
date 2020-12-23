@@ -93,6 +93,7 @@
  - pm2 start start.config.js  ( developement으로 실행)  production으로 실행하고 싶으면 pm2 start start.config.js --evn production
  https://pm2.keymetrics.io/docs/usage/environment/
  
+ #### [ single mode -> 서버 1대]
  // start.config.js
   ```
   module.exports = {
@@ -115,6 +116,24 @@
   }
   ```
   
+  #### [ cluster mode -> 서버 여러대 ]
+  ```
+  {
+    "apps": [
+      {
+        "name": "chatting cluster",
+        "script": "./server.js",
+        "instances": 2,
+        "exec_mode": "cluster",
+        "env": {
+          "NODE_ENV": "production",
+          "PORT": "3000"
+        }
+      }
+    ]
+  } 
+  
+  ```
   
  ### [ 서버가 1대 일때 채팅서버 구조 ]
   - socket.io 만으로 처리가능. ( 해당 roomId에 있는 유저들에게 메시지를 보낸다. socket.io의 to 함수를 사용하면 특정 socket.id 또는 특정 room에 있는 소켓들에게 메시지 전송 가능 )
