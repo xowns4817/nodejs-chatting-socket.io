@@ -13,7 +13,7 @@
   		}
 	</script>
 	<script>
-			let socket = io('http://localhost:3000');
+			let socket = io('http://localhost:3000', {transports: ['websocket']});
 			let roomId= "<%=roomId%>";
 			let roomTitle = "<%=roomTitle%>";
 			let nickname = "<%=nickname%>";
