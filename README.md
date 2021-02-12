@@ -68,7 +68,7 @@
 
  
  ### 채방방 접속 방법
- - http://server url:port
+ - http://server url:port/chat
  - 같은 채팅방에 있는 유저들끼리 대화 가능
 
 ### [ 구현된 기능 ]
@@ -77,10 +77,11 @@
  3. 같은방에서 채팅
  4. 채팅방 리스트 조회
  5. 채팅방에서 채팅중인 유저 조회
+ 6. 서버 여러대 확장을 고려해 redis-pub/sub을 통한 서버간 message broadcast 처리
  
  
 ### [ 확장 예정 ]
- 1. 서버 여러대 확장을 고려해 redis-pub/sub, Mq( rabbitMq, kafka )를 통해 분산처리 ( 같은 채팅 방에 있지만 다른서버에 붙은 유저들 처리 가능 )
+ 1. Mq( rabbitMq, kafka )를 통해 분산처리 ( db 앞단에서 트래픽 관리 )
  2. 참여자 프로필 이미지 설정 ( 채팅방 참여 전 이미지 받음 )
  3. 채팅방 이미지 업로드 기능
  4 로그 데이터 mongodb로 관리 ( 채팅방 create/delete,  채팅방에 참여자 in/out, 채팅 기록 )
@@ -91,9 +92,10 @@
 ### [사용법]
  - npm install pm2 -g
  - pm2 start start.config.js  ( developement으로 실행)  production으로 실행하고 싶으면 pm2 start start.config.js --evn production
- https://pm2.keymetrics.io/docs/usage/environment/
+ - https://pm2.keymetrics.io/docs/usage/environment/
  
- // start.config.js
+ #### [ single mode -> 서버 1대 - fork mode]
+ - // start.config.js
   ```
   module.exports = {
     apps : [
@@ -114,7 +116,30 @@
     ]
   }
   ```
+  ![fork_mode](https://user-images.githubusercontent.com/21052356/102951947-e0082700-4482-11eb-8839-aae12ba54ee4.png)
   
+  #### [ cluster mode -> 서버 여러대 - cluster mode]
+  - https://pm2.keymetrics.io/docs/usage/cluster-mode/
+  - pm2 cluster mode를 사용하면 cluster로 묶인 서버들은 pm2를 통해 load balancing이 된다. 각 서버들은 같은 port를 공유한다.
+  - // start.config.cluster.json 
+  ```
+  {
+    "apps": [
+      {
+        "name": "chatting cluster",
+        "script": "./server.js",
+        "instances": 2, // cpu core 갯수,  0으로 설정하면 pc의 최대 core 갯수
+        "exec_mode": "cluster",
+        "env": {
+          "NODE_ENV": "production",
+          "PORT": "3000"
+        }
+      }
+    ]
+  } 
+  
+  ```
+  ![cluster_mode](https://user-images.githubusercontent.com/21052356/102952000-f57d5100-4482-11eb-8f80-6646b659ec58.png)
   
  ### [ 서버가 1대 일때 채팅서버 구조 ]
   - socket.io 만으로 처리가능. ( 해당 roomId에 있는 유저들에게 메시지를 보낸다. socket.io의 to 함수를 사용하면 특정 socket.id 또는 특정 room에 있는 소켓들에게 메시지 전송 가능 )
