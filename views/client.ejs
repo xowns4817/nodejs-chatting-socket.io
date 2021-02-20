@@ -27,7 +27,7 @@
 					console.log(JSON.parse(data));
 				});
 
-				socket.emit('joinRoom', {'roomId': roomId, 'nickname': nickname});
+				socket.emit('joinRoom', {'roomId': roomId, 'roomTitle': roomTitle, 'nickname': nickname});
 				
 				socket.on('msgAlert', function(data) {
 					alert(data);

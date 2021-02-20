@@ -41,7 +41,7 @@ server.listen(3000, function( ){
 
 app.use(express.static('public'));
 
-var io = require('socket.io')(server);
+let io = require('socket.io')(server);
 
 // subscribe channel
 redisSubClient.subscribe("heartBeat");
@@ -50,6 +50,13 @@ redisSubClient.subscribe("in_message");
 redisSubClient.subscribe("out_message");
 redisSubClient.subscribe("receive_message");
 
+/**
+	io객체 안에 socket 객체들이 물려있음.
+	즉,  client에서 socket연결이 되면 io객체에서 socket 객체(socket server)를 생성한다. socket 안의 roomId는 지역변수이므로 요청을 보낸 유저만 사용할 것이므로 문제안될듯??
+	io에 물린 객체들이 서로 다른 채팅방에 있을수 있으므로 socket객체(각 client)는 자신의 roomId와 broadCast로 들어오는 roomId가 같은때만 정보를 받음. ( 같은
+	io에 물려있으므로 클라이언트에서 emit명령어로 서버로 요청을 보내면 요청이 모든 socket객들에 다 들어오게되서 roomId 기준으로 분기)
+	-> 이 말은, 다른 방에 있는사람한테도 메시지를 보낼 수 있다는 뜻이된다. ( 귀속말 같은? )
+*/
 io.on('connection', socket => {
 	// 사용자의 소켓 아이디 출력
 	console.log('User Connected: ', socket.id);
@@ -60,15 +67,15 @@ io.on('connection', socket => {
 		console.log('message: ' + message + ' channel: ' + channel);	
 
 		message = JSON.parse(message);
+		//console.log(message);
 		
 		if(roomId===message.roomId) {
-		// 서버당 요청 1번씩만 broadCast해주려면...
 		switch(channel) {
 			case 'heartBeat':
 				socket.emit('heartBeat', message);
 				break;
 			case 'msgAlert':
-				io.to(socket.id).emit('msgAlert', message.name + '님이 ' + message.roomId + '방에 참여하셨습니다.');
+				io.to(socket.id).emit('msgAlert', message.name + '님이 ' + message.roomTitle + '방에 참여하셨습니다.');
 				break;
 			case 'in_message':
 				io.to(socket.id).emit('in_message', message.name + '님이 입장하셨습니다.');
@@ -90,8 +97,10 @@ io.on('connection', socket => {
 	}, 5000);
 	
 	socket.on('joinRoom', function(data) { // 원래는 인자로 data 받아야함 ( client에서 설정 )
+		console.log("joinRoom : " + socket.id);
 		roomId = data.roomId;
 		let name=data.nickname;
+		let roomTitle=data.roomTitle;
 
 		socket.join(roomId); // 새로운 방 들어간다.		
 		//io.to(roomId).emit('msgAlert', name + '님이 ' + roomId + '방에 참여하셨습니다.');
@@ -99,6 +108,8 @@ io.on('connection', socket => {
 		let alertObj={ };
 		alertObj.name = name;
 		alertObj.roomId = roomId;
+		alertObj.roomTitle = roomTitle;
+
 		redisPubClient.publish('msgAlert', JSON.stringify(alertObj));
 
 	   // roomId, socket_id mapping
@@ -139,7 +150,6 @@ io.on('connection', socket => {
 	let inObj = { };
 	inObj.name=name;
 	inObj.roomId=roomId;
-	console.log("publish in_message !");
 	redisPubClient.publish('in_message', JSON.stringify(inObj));
 
 	// 사용자의 연결이 끊어지면
