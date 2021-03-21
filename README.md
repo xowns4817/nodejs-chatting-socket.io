@@ -63,7 +63,7 @@
     chat_time datetime default current_timestamp,
     primary key(id),
     foreign key(room_id) references chatRoom(id),
-    foreign key(user_id) referebces chatMember(id)
+    foreign key(user_id) references chatMember(id)
  );
  ```
 
