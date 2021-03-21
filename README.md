@@ -58,11 +58,12 @@
   create table chatMsg (
     id int not null auto_increment,
     room_id int not null,
-    nickname varchar(50) not null,
+    user_id int not null,
     content varchar(100) not null,
     chat_time datetime default current_timestamp,
     primary key(id),
-    foreign key(room_id) references chatRoomt(id)
+    foreign key(room_id) references chatRoom(id),
+    foreign key(user_id) referebces chatMember(id)
  );
  ```
 
